@@ -27,9 +27,9 @@ services:
       - ./acme:/root/.acme.sh/
       - ./logs:/usr/local/lsws/logs/
     ports:
-      - 82:82
-      - 444:444
-      - 444:444/udp
+      - 81:81
+      - 4433:4433
+      - 4433:4433/udp
       - 7080:7080
     restart: always
     environment:
@@ -39,8 +39,8 @@ services:
   phpmyadmin:
     image: bitnami/phpmyadmin:5.2.2
     ports:
-      - 7070:7070
-      - 7447:7447
+      - 8080:8080
+      - 8443:8443
     environment:
         DATABASE_HOST: mysql
     restart: always
@@ -50,13 +50,25 @@ services:
     image: "redis:alpine"
     logging:
       driver: none
-    # command: redis-server --requirepass 8b405f60665e48f795752e534d93b722
     volumes:
       - ./redis/data:/var/lib/redis
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
     environment:
       - REDIS_REPLICATION_MODE=master
     restart: always
+    networks:
+      - default
+  wordpress-installer:
+    image: litespeedtech/openlitespeed:${OLS_VERSION}-${PHP_VERSION}
+    depends_on:
+      - litespeed
+      - mysql
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    command: >
+      bash -c "chmod +x ./bin/appinstall.sh && ./bin/appinstall.sh -A wordpress -D localhost"
+    restart: "no"
     networks:
       - default
 networks:
