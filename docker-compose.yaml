@@ -14,13 +14,6 @@ services:
     restart: always
     networks:
       - default
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
-
   litespeed:
     image: litespeedtech/openlitespeed:${OLS_VERSION}-${PHP_VERSION}
     container_name: litespeed
@@ -34,37 +27,30 @@ services:
       - ./acme:/root/.acme.sh/
       - ./logs:/usr/local/lsws/logs/
     ports:
-      - 81:81
-      - 4433:4433
-      - 4433:4433/udp
+      - 80:80
+      - 443:443
+      - 443:443/udp
       - 7080:7080
     restart: always
     environment:
       TZ: ${TimeZone}
     networks:
       - default
-    healthcheck:
-      test: ["CMD-SHELL", "/usr/local/lsws/bin/lswsctrl status >/dev/null 2>&1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
-
   phpmyadmin:
     image: bitnami/phpmyadmin:5.2.2
     ports:
-      - 7070:7070
-      - 7447:7447
+      - 8080:8080
+      - 8443:8443
     environment:
-      DATABASE_HOST: mysql
+        DATABASE_HOST: mysql
     restart: always
     networks:
       - default
-
   redis:
     image: "redis:alpine"
     logging:
       driver: none
+    # command: redis-server --requirepass 8b405f60665e48f795752e534d93b722
     volumes:
       - ./redis/data:/var/lib/redis
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
@@ -73,21 +59,6 @@ services:
     restart: always
     networks:
       - default
-
-  wordpress-installer:
-    image: docker:26-cli
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      mysql:
-        condition: service_healthy
-      litespeed:
-        condition: service_healthy
-    entrypoint: ["sh","-c","docker exec litespeed /usr/local/bin/appinstallctl.sh --app wordpress --domain localhost"]
-    restart: "no"
-    networks:
-      - default
-
 networks:
   default:
     driver: bridge
