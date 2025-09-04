@@ -27,7 +27,7 @@ services:
       - ./acme:/root/.acme.sh/
       - ./logs:/usr/local/lsws/logs/
     ports:
-      - 80:80
+      - 82:82
       - 443:443
       - 443:443/udp
       - 7080:7080
@@ -39,8 +39,8 @@ services:
   phpmyadmin:
     image: bitnami/phpmyadmin:5.2.2
     ports:
-      - 8080:8080
-      - 8443:8443
+      - 7070:7070
+      - 7447:7447
     environment:
         DATABASE_HOST: mysql
     restart: always
